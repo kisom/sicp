@@ -171,3 +171,93 @@ circumference
 ;;; > "Syntactic sugar causes cancer of the semicolon."
 ;;; >
 ;;; > --Alan Perlis
+
+;;; #### Compound Procedures
+
+;;; _Procedure definitions_ allow us to name compound _operations_ and
+;;; refer to them as a unit. In Scheme:
+
+(define (square x) (* x x))
+
+;;; This names a _compound procedure_, named _square_, which is an
+;;; operating that multiplies something by itself. The object to be
+;;; multiplies is given a local name `x`, which acts as a
+;;; pronoun. Evaluating this instance of `define` both creates the
+;;; procedure and names it. The generate form of a procedure
+;;; definition:
+;;;
+;;; ``` (define (<NAME> <FORMAL PARAMETERS>) <BODY>) 
+;;;```
+;;;
+;;; &lt;NAME&gt; is a symbol to be associated with the procedure;
+;;; &lt;FORMAT PARAMETERS&gt; gives names to the corresponding
+;;; arguments; and &lt;BODY&gt; is the expression that yields the
+;;; operation's value, with the formal parameters replaced by the
+;;; actual arguments.
+
+;;; Having named this operation, it may now be used:
+
+(square 21)
+
+;;; ```
+;;; 441
+;;; ```
+
+;;; `square` may now be used as a building block. Expressing
+;;; x<sup>2</sup> + y<sup>2</sup> could be expressed as
+
+;;; ```
+;;; (+ (square x) (square y)
+;;; ```
+
+;;; We can name this `sum-of-squares`:
+
+(define (sum-of-squares x y)
+  (+ (square x) (square y)))
+(sum-of-squares 3 4)
+
+;;; ```
+;;; 25
+;;; ```
+
+;;; Continuing this theme, `sum-of-squares` can also be used as a
+;;; building block:
+
+(define (f a)
+  (sum-of-squares (+ a 1) (* a 2)))
+(f 5)
+
+;;; ```
+;;; 136
+;;; ```
+
+;;; Compound procedures are indistinguishable in their use from
+;;; primitive procedures.
+
+;;; It is important to distinguish between creating a procedure and
+;;; naming it. For example, a procedure may be created without naming
+;;; it via `lambda`:
+
+((lambda (x) (* x x)) 2)
+
+;;; ```
+;;; 4
+;;; ```
+
+(define square2 (lambda (x) (* x x)))
+(= (square 2) (square2 2))
+
+;;; The body of a procedure can be a sequence of expressions, the
+;;; final of which is returned as the value of the procedure:
+
+(define (body-sequence-example x)
+  (+ x x)
+  (* x x))
+(body-sequence-example 3)
+
+;;; ```
+;;; 9
+;;; ```
+
+;;; #### The Substitution Model for Procedure Application
+
