@@ -203,7 +203,7 @@ circumference
 ;;; 441
 ;;; ```
 
-;;; `square` may now be used as a building block. Expressing
+;;; `square` may now be used as a building block. The procedure
 ;;; x<sup>2</sup> + y<sup>2</sup> could be expressed as
 
 ;;; ```
