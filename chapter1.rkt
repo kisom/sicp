@@ -1,4 +1,4 @@
-#lang scheme
+#lang planet neil/sicp
 
 ;;; ## Building Abstractions with Procedures
 ;;;
