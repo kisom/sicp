@@ -1,4 +1,4 @@
-#lang planet neil/sicp
+;; #lang planet neil/sicp
 
 ;;; ## Building Abstractions with Procedures
 ;;;
@@ -693,4 +693,123 @@ circumference
 ;;; how to implement Newton's method in general as an abstraction of
 ;;; these square-root and cube-root procedures.)
 
+(define (cube-iter guess x)
+  (good-enough3? (improve3 guess x) guess x))
+
+(define (good-enough3? improvement guess x)
+  (if (< (abs (- improvement guess)) 0.001)
+      improvement
+      (cube-iter improvement x)))
+
+(define (improve3 guess x)
+   (/ 
+    (+
+     (/ x (square guess))
+     (* 2 guess))
+    3))
+   
+(define (cube-root x)
+  (cube-iter 1.0 x))
+
+;;; #### Procedures as Black-Box Abstractions
+
+;;; Notice that `sqrt-iter` is defined _recursively_: it is defined in
+;;; terms of itself. This problem breaks down neatly into discrete
+;;; subproblems. A useful decomposition strategy has each subproblem
+;;; accomplishing a specific task that can be used as a combination in
+;;; other procedures. We can regard these combinations as _black
+;;; boxes_ &mdash; we don't concern ourselves with their
+;;; implementation, only their functionality. In this way, `square` is
+;;; not so much a procedure as an abstraction of a procedure, to wit:
+;;; a _procedural abstraction_.
+
+; *Figure 1.2:* Procedural decomposition of the `sqrt' program.
+;  
+;                       sqrt
+;                        |
+;                    sqrt-iter
+;                    /       \
+;            good-enough    improve
+;              /    \          |
+;           square  abs     average
+
+;;; A procedure definition should be able to suppress detail: users
+;;; shouldn't need to concern themselves with how the procedure
+;;; arrives at its answer, only that it arrives at the correct answer.
+
+;;; ##### Local Names
+;;;
+;;; The choice of parameter names for procedures shouldn't affect
+;;; users: that is, the following should be indistinguishable:
+
+; (define (square x) (* x x))
+
+; (define (square y) (* y y))
+
+;;; This may seem to be an obvious principle but it carries profound
+;;; implications, the simplest of which is that the parameter names
+;;; *must* be local to the body of the procedure. If an implementation
+;;; of `square` used `x` as a parameter name, the definition of
+;;; `good-enough?` should not be affected by this. Otherwise, their
+;;; values could be confused and neither would serve as a useful black
+;;; box.
+
+;;; Names in situations such as these are referred to as _bound
+;;; variables_; it is said that the procedure _binds_ its formal
+;;; parameters. It a variable is not bound, it is said to be _free_;
+;;; the set of expressions defining a name comprise the _scope_ of
+;;; that name. Notice that in Scheme, variable names occupy the same
+;;; environment as function names; accordingly, had `good-enough?`
+;;; been named `abs`, it would introduce a bug by _capturing_ the
+;;; previously defined _abs_.
+
+;;; ##### Internal definitions and block structure
+;;;
+;;; So far, we have seen one kind of name isolation: formal parameter
+;;; are local to the body of their enclosing procedure. However, in
+;;; the definitions germane to `sqrt` we see another type of isolation
+;;; that would be useful: of all the definitions, only `sqrt` is
+;;; useful to an end user. The other definitions only service to
+;;; introduce noise masking the one definition useful to user. Abelson
+;;; and Sussman use the wondeful phrasing,
+
+;;; > The other procedures&hellip; only clutter up their minds.
+
+;;; If we were to build a library of mathematical procedures, many of
+;;; the functions would be computed through successive approximation,
+;;; which require many accompanying auxillary functions such as
+;;; `good-enough?` and `improve`. Subprocedures may be localised, such
+;;; that they may co-exist with others and allowing each numerical
+;;; function to have its own `good-enough?` and `improve` through the
+;;; use of internal definitions. For example, we could write the
+;;; square root function as
+
+(define (sqrt x)
+  (define (good-enough? guess x)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess x)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess x)
+    (if (good-enough? guess x)
+        guess
+        (sqrt-iter (improve guess x) x)))
+  (sqrt-iter 1.0 x))
+
+;;; This nesting of definitions is called _block structure_, and is a
+;;; basic approach to the simplest name-packaging problems. However,
+;;; it can be simplified further: note that `x` is shared among many
+;;; of the functions &mdash; we can allow it to be a free variable in
+;;; the definitions. It will then derive its value from the enclosing
+;;; expressions (a discipline termed _lexical scoping_).
+
+(define (sqrt x)
+  (define (good-enough? guess)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+        guess
+        (sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
 
