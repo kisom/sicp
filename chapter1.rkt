@@ -602,3 +602,95 @@ circumference
 (sqrt (+ (sqrt 2) (sqrt 3)))
 
 (square (sqrt 1000))
+
+;;; *Exercise 1.6* Alyssa O. Hacker doesn't see why `if` needs to be
+;;; provided as a special form. "Why can't I just define it as an
+;;; ordinary procedure in terms of `cond`?" she asks. Alyssa's friend
+;;; Eva Lu Ator claims this can indeed be done, and she defines a new
+;;; version of `if`:
+
+(define (new-if predicate then-clause else-clause)
+  (cond (predicate then-clause)
+        (else else-clause)))
+
+;;; Eva then demonstrates the program for Alyssa:
+
+(new-if (= 2 3) 0 5)
+
+(new-if (= 1 1) 0 5)
+
+;;; Delighted, Alyssa uses new-if to rewrite the square-root program:
+
+; (define (sqrt-iter guess x)
+;   (new-if (good-enough? guess x)
+;           guess
+;           (sqrt-iter (improve guess x)
+;                      x)))
+
+;;; What happens when Alyssa attempts to compute square roots?
+;;; Explain.
+
+;;; _Answer_: The function will never end, because according to our
+;;; evaluation rule, both the then and else clauses are evaluated
+;;; _before_ the predicate is evaluated; this is due to the use of
+;;; applicative-order "evaluate the arguments then apply" method.
+
+;;; *Exercise 1.7:* The `good-enough?` test used in computing square
+;;; roots will not be very effective for finding the square roots of
+;;; very small numbers.  Also, in real computers, arithmetic
+;;; operations are almost always performed with limited precision.
+;;; This makes our test inadequate for very large numbers.  Explain
+;;; these statements, with examples showing how the test fails for
+;;; small and large numbers.  An alternative strategy for implementing
+;;; `good-enough?` is to watch how `guess` changes from one iteration
+;;; to the next and to stop when the change is a very small fraction
+;;; of the guess.  Design a square-root procedure that uses this kind
+;;; of end test.  Does this work better for small and large numbers?
+
+;;; _Answer_: First, consider the case of a small number:
+
+(square (sqrt 0.0001))
+
+;;; The computed answer of `0.0010438...` is off by a factor of 10,
+;;; illustrating the weakness of `good-enough?` in the case of very
+;;; small numbers. Here, the number is small enough that our tolerance
+;;; is larger than the number; our resolution is limited to the size
+;;; of the tolerance, roughly. Next, consider the case
+
+(square (sqrt 123456789123456789))
+
+;;; The computer answer of `1.2345678912345678e+17` is also not quite
+;;; accurate. The number is large enough that once the result is
+;;; within some (still-large) value, it satisfies our tolerance
+;;; condition.
+
+;;; These results suggest that we could tune the tolerance, but that
+;;; is a cat and mouse game, constantly changing the tolerance to
+;;; match numbers better. 
+
+(define (sqrt-iter guess x)
+  (good-enough? (improve guess x) guess x))
+
+(define (good-enough? improvement guess x)
+  (if (< (abs (- improvement guess)) 0.001)
+      improvement
+      (sqrt-iter improvement x)))
+
+;;; This works better for small numbers, but large numbers still don't
+;;; work well -- they are limited to the resolution given by the
+;;; Scheme number system.
+
+;;; *Exercise 1.8:* Newton's method for cube roots is based on the
+;;; fact that if y is an approximation to the cube root of x, then a
+;;; better approximation is given by the value
+
+;             x/y^2 + 2y
+;             ----------
+;                 3
+
+;;; Use this formula to implement a cube-root procedure analogous to
+;;; the square-root procedure. (In section 1-3-4 we will see
+;;; how to implement Newton's method in general as an abstraction of
+;;; these square-root and cube-root procedures.)
+
+
